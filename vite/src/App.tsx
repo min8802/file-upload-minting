@@ -1,4 +1,4 @@
-import { Button, Flex, Text } from "@chakra-ui/react";
+import { Button, Flex, Input, Text } from "@chakra-ui/react";
 import { Contract, ethers } from "ethers";
 import { JsonRpcSigner } from "ethers";
 import { FC, useEffect, useState } from "react";
@@ -20,6 +20,27 @@ const App : FC = () => {
     }
   }
 
+  const onChangeFile = async (e:any) => {
+    try {
+      if (!e.currentTarget.files) return;
+
+      const formData = new FormData();
+
+      console.log(formData);
+
+      formData.append("file", e.currentTarget.files[0]);
+
+      console.log(formData);
+
+      const t = await formData.getAll("file");
+
+      console.log(t);
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     if (!signer) return;
 
@@ -32,11 +53,14 @@ const App : FC = () => {
   return (
     <Flex bgColor="red.100" minH="100vh" justifyContent="center" alignItems="center">
       {signer ? (
-        <Text>{signer.address}</Text>
+        <>
+          <Text>{signer.address}</Text>
+          <Input type="file" onChange={onChangeFile}/>  
+        </>
+        
       ) : (
         <Button onClick={onClickMetamask}>🦊 로그인</Button>
       )}
-    <Button onClick={onClickMetamask}>로그인</Button>
     </Flex>
   )
 }
