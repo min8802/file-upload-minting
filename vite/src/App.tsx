@@ -1,8 +1,9 @@
 import { Button, Flex, Input, Text } from "@chakra-ui/react";
 import { Contract, ethers } from "ethers";
 import { JsonRpcSigner } from "ethers";
-import { FC, useEffect, useState } from "react";
+import { ChangeEvent, FC, useEffect, useState } from "react";
 import mintNftAbi from "./mintNftAbi.json";
+import axios from "axios";
 
 const App : FC = () => {
   const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
@@ -20,22 +21,72 @@ const App : FC = () => {
     }
   }
 
-  const onChangeFile = async (e:any) => {
+  const uploadImage = async (formData: FormData) => {
+    try {
+      const response = await axios.post(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            pinata_api_key: import.meta.env.VITE_PINATA_KEY,
+            pinata_secret_api_key: import.meta.env.VITE_PINATA_SECRET,
+          },
+        }
+      );
+      console.log(import.meta.env.VITE_PINATA_KEY);
+      console.log(import.meta.env.VITE_PINATA_SECRET);
+      return `https://slime-project.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+ 
+  const uploadMetadata = async (image: string) => {
+    try {
+      const metadata = JSON.stringify({
+        pinataContent: {
+          name: "Test",
+          description: "Test",
+          image,
+        },
+        pinataMetadata: {
+          name: "test.json",
+        },
+      });
+
+      const response = await axios.post(
+        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+        metadata,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            pinata_api_key: import.meta.env.VITE_PINATA_KEY,
+            pinata_secret_api_key: import.meta.env.VITE_PINATA_SECRET,
+          },
+        }
+      );
+
+      return `https://slime-project.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  //여기서response.data.IpfsHash 에서 IpfsHash값은 pinata에 사진 클릭해서 들어가면 사진의 url주소 있는데 그게 IpfsHash임
+  //https://violet-actual-wolf-678.mypinata.cloud/ipfs/QmbePcPE7LjGn32LGQAYzBbe5dWCb67nLS7w4p2pBAfhVw 여기서 Qmbe로 시작하는 저부분이 IpfsHash
+  const onChangeFile = async (e: ChangeEvent<HTMLInputElement>) => {
     try {
       if (!e.currentTarget.files) return;
 
       const formData = new FormData();
 
-      console.log(formData);
-
       formData.append("file", e.currentTarget.files[0]);
 
-      console.log(formData);
+      const imageUrl = await uploadImage(formData);
 
-      const t = await formData.getAll("file");
-
-      console.log(t);
-      
+      const metadataUrl = await uploadMetadata(imageUrl!);
+      console.log(imageUrl);
     } catch (error) {
       console.error(error);
     }
@@ -66,3 +117,4 @@ const App : FC = () => {
 }
 
 export default App;
+
