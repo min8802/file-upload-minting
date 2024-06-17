@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Button, Flex, Text } from "@chakra-ui/react";
+import { Contract, ethers } from "ethers";
+import { JsonRpcSigner } from "ethers";
+import { FC, useEffect, useState } from "react";
+import mintNftAbi from "./mintNftAbi.json";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App : FC = () => {
+  const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
+  const [contract, setContract] = useState<Contract | null>(null);
+
+  const onClickMetamask = async () => {
+    try {
+      if(!window.ethereum) return;
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+
+      setSigner(await provider.getSigner());
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    if (!signer) return;
+
+    setContract(new Contract("0x2574DA41879DE59D726Edd41B7811E17870F6785", mintNftAbi, signer))
+  }, [signer]);
+
+  useEffect(() => console.log(contract),[contract])
+
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Flex bgColor="red.100" minH="100vh" justifyContent="center" alignItems="center">
+      {signer ? (
+        <Text>{signer.address}</Text>
+      ) : (
+        <Button onClick={onClickMetamask}>🦊 로그인</Button>
+      )}
+    <Button onClick={onClickMetamask}>로그인</Button>
+    </Flex>
   )
 }
 
-export default App
+export default App;
