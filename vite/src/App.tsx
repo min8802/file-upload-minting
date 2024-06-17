@@ -36,7 +36,7 @@ const App : FC = () => {
       );
       console.log(import.meta.env.VITE_PINATA_KEY);
       console.log(import.meta.env.VITE_PINATA_SECRET);
-      return `https://slime-project.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
+      return `https://violet-actual-wolf-678.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
     } catch (error) {
       console.error(error);
     }
@@ -67,7 +67,7 @@ const App : FC = () => {
         }
       );
 
-      return `https://slime-project.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
+      return `https://violet-actual-wolf-678.mypinata.cloud/ipfs/${response.data.IpfsHash}`;
     } catch (error) {
       console.error(error);
     }
@@ -77,7 +77,8 @@ const App : FC = () => {
   //https://violet-actual-wolf-678.mypinata.cloud/ipfs/QmbePcPE7LjGn32LGQAYzBbe5dWCb67nLS7w4p2pBAfhVw 여기서 Qmbe로 시작하는 저부분이 IpfsHash
   const onChangeFile = async (e: ChangeEvent<HTMLInputElement>) => {
     try {
-      if (!e.currentTarget.files) return;
+
+      if (!e.currentTarget.files || !contract) return;
 
       const formData = new FormData();
 
@@ -86,6 +87,10 @@ const App : FC = () => {
       const imageUrl = await uploadImage(formData);
 
       const metadataUrl = await uploadMetadata(imageUrl!);
+      
+      const tx = await contract.mintNft(metadataUrl);
+
+      await tx.wait();
       console.log(imageUrl);
     } catch (error) {
       console.error(error);
@@ -106,7 +111,9 @@ const App : FC = () => {
       {signer ? (
         <>
           <Text>{signer.address}</Text>
-          <Input type="file" onChange={onChangeFile}/>  
+          <input id="file2" type="file" onChange={onChangeFile} style={{ display: "none"}}/>
+          <label htmlFor="file2">민팅</label>
+            
         </>
         
       ) : (
